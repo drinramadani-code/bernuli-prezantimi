@@ -1,0 +1,38 @@
+PROGRAMI – Ekuacioni i energjisë dhe zbatimi i tij. Matja e presionit
+=====================================================================
+
+Programi përbëhet nga 3 skedarë: index.html, style.css dhe sketch.js.
+
+SI VENDOSET NË editor.p5js.org
+1. Hyni në https://editor.p5js.org dhe kyçuni me llogari (që projekti të ruhet).
+2. File → New. Klikoni shigjetën ">" në të majtë për të hapur listën "Sketch Files".
+3. Hapni index.html te editori, fshini gjithçka dhe ngjitni përmbajtjen e index.html tonë.
+4. Bëni të njëjtën gjë për style.css dhe sketch.js.
+5. Shtypni Play (▶). Ruajeni me File → Save dhe jepni emrin e projektit.
+6. Për ta ndarë me kolegët: File → Share → kopjoni linkun "Full Screen".
+
+Kujdes: mos e fshini rreshtin e p5.js në index.html – programi e merr bibliotekën nga interneti.
+
+SI HAPET NË KOMPJUTER
+Klikoni dy herë mbi index.html (kërkon internet për p5.js dhe shkronjat).
+
+PËRDORIMI
+  ← →   kalim nga një temë te tjetra
+  P     modaliteti i prezantimit (fsheh menynë)
+Në telefon menyja shfaqet si shirit sipër; skicat lexohen më mirë me telefonin horizontalisht.
+
+PËRMBAJTJA (sipas punimit)
+  0 Kreu
+  1 Formulat paraprake (me llogaritës)
+  2 Fluidi në qetësi – Figura 1, ek. (1.1)–(1.3)
+  3 Fluidi në lëvizje – Figura 2, ek. (*) dhe (**)
+  4 Sifoni – Figura 3, ek. (1.6)
+  5 Forma për njësi peshe – ek. (1.7)
+  6 Forma për njësi mase – ek. (1.8)
+  7 Bernuli në jetën e përditshme: spërkatësi i parfumit – Figura 6, ek. (2.1)–(2.5)
+  8 Shembull nga hidraulika: rezervuari dhe ndërtesa – Figura 7, ek. (2.6)–(2.12)
+  9 Kuizi
+
+PËRDITËSIMI NË editor.p5js.org
+Editori ruan kopjen e vet të skedarëve. Pas çdo ndryshimi, hapni sketch.js dhe style.css
+në editor, fshini përmbajtjen e vjetër, ngjitni të renë dhe shtypni Save + Play.

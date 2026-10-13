@@ -1,0 +1,220 @@
+/* Prezantimi "Ekuacioni i energjisë" – tema e Universitetit të Prishtinës
+   Ngjyrat e logos: e kuqe #cd2e31, e zezë #1f1a17, hiri. Sllajde 16:9 (1280 × 720). */
+:root {
+  --kuqe-up: #cd2e31; --kuqe-err: #a8232a; --zeza: #1f1a17; --hiri: #5f5a58; --hiri-2: #938d8a;
+  --sfondi: #e9e6e4; --karta: #ffffff; --kufiri: #e3dfdd; --vija: #ebe7e5; --zbehte: #f7f5f4;
+  --kuqe: #c0392b; --gjelber: #2f7a3e; --z: #8a6a34; --p: #1f5fae; --v: #d4691e;
+  --tekst: "Source Sans 3", "Segoe UI", Arial, sans-serif;
+  --math: "Cambria Math", Cambria, "Times New Roman", serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: #2a2523; color: var(--zeza); font-family: var(--tekst); overflow: hidden; -webkit-font-smoothing: antialiased; }
+.logo-up { background: url("data:image/png;base64,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") center / contain no-repeat; background-color: #fff; border-radius: 50%; }
+button { font: inherit; cursor: pointer; }
+
+/* ---------- skena dhe sllajdi ---------- */
+.skena { position: fixed; inset: 0 0 52px 0; display: grid; place-items: center; overflow: hidden; }
+.sllajd {
+  width: 1280px; height: 720px; flex-shrink: 0;
+  background: var(--karta); position: relative; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  transform-origin: center center;
+  display: flex; flex-direction: column;
+  font-size: 20px; line-height: 1.45;
+}
+.sllajd.hyr { animation: hyr .35s ease; }
+@keyframes hyr { from { opacity: 0; } to { opacity: 1; } }
+
+.sl-koka { height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 14px; padding: 0 40px; border-bottom: 1px solid var(--vija); }
+.sl-koka .logo-up { width: 40px; height: 40px; box-shadow: 0 0 0 2px var(--kuqe-up); }
+.sl-koka .uni { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--hiri); line-height: 1.3; }
+.sl-koka .uni b { color: var(--zeza); letter-spacing: .06em; }
+.sl-koka .grupi { margin-left: auto; font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--kuqe-up); }
+.sl-trupi { flex: 1; min-height: 0; padding: 26px 40px 18px; position: relative; overflow: auto; }
+.sl-fund { height: 40px; flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 0 40px; font-size: 13px; color: var(--hiri-2); border-top: 1px solid var(--vija); }
+.sl-fund .nr { margin-left: auto; font-weight: 700; color: var(--zeza); font-variant-numeric: tabular-nums; }
+.sllajd::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 8px; background: var(--kuqe-up); }
+
+/* titujt */
+.vetulla { margin: 0 0 6px; font-size: 16px; font-weight: 600; color: var(--kuqe-up); }
+.vetulla .nr-m { background: var(--zeza); color: #fff; border-radius: 5px; padding: 1px 8px; }
+.sl-titulli { margin: 0; font-size: 40px; font-weight: 800; line-height: 1.08; letter-spacing: -.01em; }
+.sl-titulli::after { content: ""; display: block; width: 72px; height: 5px; background: var(--kuqe-up); border-radius: 3px; margin-top: 12px; }
+.sl-nen { margin: 10px 0 0; color: var(--hiri); font-size: 19px; }
+.ref { display: inline-block; font-size: 14px; font-weight: 700; border: 1px solid var(--kufiri); border-radius: 999px; padding: 3px 12px; color: var(--zeza); background: var(--zbehte); }
+
+/* ---------- sllajdi i shpjegimit ---------- */
+.shp { display: grid; grid-template-columns: 1.35fr 1fr; gap: 40px; height: 100%; }
+.shp-majtas { min-height: 0; display: flex; flex-direction: column; }
+.shp-teksti { margin-top: 16px; font-size: 18.5px; }
+.shp-teksti p { margin: 0 0 12px; }
+.shp-teksti ul { margin: 0 0 12px; padding-left: 22px; }
+.shp-teksti li { margin-bottom: 8px; }
+.shp-teksti li::marker { color: var(--kuqe-up); }
+.shp-djathtas { display: flex; flex-direction: column; gap: 18px; justify-content: center; }
+.kutia-formula { background: var(--zeza); color: #fff; border-radius: 14px; padding: 26px 26px 20px; }
+.kutia-formula h4 { margin: 0 0 12px; font-size: 16px; font-weight: 600; color: #e2a3a5; }
+.kutia-formula .formula { font-family: var(--math); font-size: 25px; line-height: 1.6; }
+.kutia-formula .formula small { display: block; font-family: var(--tekst); font-size: 14px; color: #b5aeab; margin-top: 10px; }
+.kutia-formula .formula .z, .kutia-formula .formula .p, .kutia-formula .formula .v { color: #fff; }
+.drejt-modulit { font-size: 16px; color: var(--hiri); display: flex; align-items: center; gap: 10px; }
+.drejt-modulit b { color: var(--kuqe-up); }
+.shenim { font-size: 17px; color: var(--hiri); background: var(--zbehte); border-left: 4px solid var(--kuqe-up); padding: 10px 14px; border-radius: 0 8px 8px 0; margin-top: 6px; }
+
+/* ---------- sllajdi i modulit ---------- */
+.mod-koka { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 14px; }
+.mod-koka .sl-titulli { font-size: 30px; }
+.mod-koka .sl-titulli::after { width: 56px; height: 4px; margin-top: 8px; }
+.mod-koka .ref { margin-left: auto; }
+.mod { display: grid; grid-template-columns: 860px 1fr; gap: 20px; height: calc(100% - 66px); min-height: 0; }
+.kanavca { width: 860px; height: 482px; border: 1px solid var(--kufiri); border-top: 4px solid var(--kuqe-up); border-radius: 10px; overflow: hidden; line-height: 0; background: #fff; touch-action: pan-y; }
+.kanavca canvas { display: block; }
+.paneli { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
+.kontrollet { display: flex; flex-direction: column; gap: 8px; }
+.kontrollet:empty { display: none; }
+.kontroll { display: flex; flex-direction: column; gap: 1px; }
+.kontroll label { font-size: 13.5px; color: var(--hiri); line-height: 1.3; }
+.kontroll label b { color: var(--kuqe-err); font-weight: 700; font-variant-numeric: tabular-nums; }
+.kontroll input[type="range"] { width: 100%; accent-color: var(--kuqe-up); height: 22px; margin: 0; }
+.kontroll select { font: inherit; font-size: 14px; padding: 4px 6px; border: 1px solid var(--kufiri); border-radius: 6px; background: #fff; }
+.kontroll.cek { flex-direction: row; align-items: center; gap: 8px; }
+.kontroll.cek input { width: 18px; height: 18px; accent-color: var(--kuqe-up); }
+.kontroll.cek label { color: var(--zeza); font-weight: 600; font-size: 14.5px; }
+.kontroll button { border: 1.5px solid var(--zeza); background: #fff; border-radius: 6px; padding: 4px 10px; font-size: 14px; font-weight: 600; }
+.kontroll button:hover { background: var(--zeza); color: #fff; }
+.lexime { border-top: 2px solid var(--zeza); padding-top: 6px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.lexime .rresht { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--vija); padding: 4px 0; }
+.lexime .rresht span { color: var(--hiri); }
+.lexime .rresht b { font-weight: 700; text-align: right; }
+.kujdes { color: var(--kuqe); font-weight: 700; }
+.tabela-energjise { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.tabela-energjise th, .tabela-energjise td { border-bottom: 1px solid var(--vija); padding: 3px 4px; text-align: right; }
+.tabela-energjise th:first-child, .tabela-energjise td:first-child { text-align: left; }
+.tabela-energjise th { color: #fff; background: var(--zeza); }
+.frx { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1.05; margin: 0 2px; }
+.frx > span:first-child { border-bottom: 1.2px solid currentColor; padding: 0 3px; }
+
+/* ---------- sllajdet e errëta: titulli, ndarësit, fundi ---------- */
+.sllajd.erret { background: radial-gradient(circle at 85% 15%, rgba(205,46,49,.35) 0, transparent 45%), linear-gradient(135deg, #0d0b0a, #1f1a17 60%, #2e2826); color: #fff; }
+.sllajd.erret::before { width: 0; }
+.sllajd.erret .sl-koka, .sllajd.erret .sl-fund { border-color: rgba(255,255,255,.12); }
+.sllajd.erret .sl-koka .uni, .sllajd.erret .sl-fund { color: #b5aeab; }
+.sllajd.erret .sl-koka .uni b, .sllajd.erret .sl-fund .nr { color: #fff; }
+.rrethi { position: absolute; right: -120px; bottom: -160px; width: 520px; height: 520px; border: 2px solid rgba(205,46,49,.45); border-radius: 50%; pointer-events: none; }
+.rrethi.i2 { right: 40px; bottom: -260px; width: 380px; height: 380px; border-color: rgba(255,255,255,.08); }
+
+.titulli-faqe { display: grid; grid-template-columns: 1.55fr 1fr; gap: 50px; height: 100%; align-items: center; padding: 0 20px; }
+.titulli-faqe .logo-up { width: 104px; height: 104px; box-shadow: 0 0 0 4px var(--kuqe-up), 0 8px 24px rgba(0,0,0,.4); margin-bottom: 26px; }
+.titulli-faqe .uni2 { font-size: 15px; letter-spacing: .12em; text-transform: uppercase; color: #b5aeab; margin: 0 0 18px; line-height: 1.5; }
+.titulli-faqe h1 { margin: 0; font-size: 58px; font-weight: 800; line-height: 1.02; }
+.titulli-faqe h1 span { display: block; font-weight: 400; font-size: 30px; color: #d6d1ce; margin: 8px 0; }
+.titulli-faqe h1::after { content: ""; display: block; width: 90px; height: 6px; background: var(--kuqe-up); border-radius: 3px; margin-top: 22px; }
+.titulli-faqe .lenda { margin: 18px 0 0; font-size: 20px; color: #d6d1ce; }
+.ekipi-kuti { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 24px 26px; position: relative; z-index: 1; }
+.ekipi-kuti h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #e2a3a5; }
+.ekipi-kuti ul { list-style: none; margin: 0 0 20px; padding: 0; }
+.ekipi-kuti li { padding: 6px 0 6px 14px; border-left: 3px solid var(--kuqe-up); margin-bottom: 6px; font-weight: 600; font-size: 19px; }
+.ekipi-kuti ul:last-child { margin-bottom: 0; }
+
+.ndares { height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0 60px; position: relative; z-index: 1; }
+.ndares .numri-madh { font-size: 150px; font-weight: 800; line-height: .9; color: var(--kuqe-up); }
+.ndares h2 { margin: 10px 0 0; font-size: 50px; font-weight: 800; line-height: 1.08; max-width: 900px; }
+.ndares ol { margin: 30px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 40px; max-width: 980px; }
+.ndares li { font-size: 21px; color: #d6d1ce; padding-left: 16px; border-left: 3px solid rgba(205,46,49,.7); }
+
+.permbajtja { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 26px; margin-top: 24px; }
+.permbajtja .kol h3 { margin: 0 0 10px; font-size: 22px; font-weight: 800; }
+.permbajtja .kol h3 span { color: var(--kuqe-up); margin-right: 6px; }
+.permbajtja .kol a { display: block; padding: 7px 12px; border: 1px solid var(--kufiri); border-radius: 8px; margin-bottom: 7px; color: var(--zeza); text-decoration: none; font-size: 17px; cursor: pointer; }
+.permbajtja .kol a:hover { border-color: var(--kuqe-up); background: #fbeeee; }
+.permbajtja .kol a b { color: var(--kuqe-up); margin-right: 6px; font-variant-numeric: tabular-nums; }
+
+.fundi { height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: relative; z-index: 1; }
+.fundi .logo-up { width: 110px; height: 110px; box-shadow: 0 0 0 4px var(--kuqe-up); margin-bottom: 28px; }
+.fundi h2 { margin: 0; font-size: 60px; font-weight: 800; }
+.fundi p { margin: 14px 0 0; font-size: 22px; color: #d6d1ce; }
+.fundi .linku { margin-top: 26px; font-size: 17px; color: #e2a3a5; }
+
+.btn-kuq { background: var(--kuqe-up); color: #fff; border: 0; border-radius: 8px; padding: 12px 24px; font-weight: 700; font-size: 18px; margin-top: 28px; }
+.btn-kuq:hover { background: #fff; color: var(--zeza); }
+
+/* ---------- formulat paraprake ---------- */
+.formulat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+.fkarte { border: 1px solid var(--kufiri); border-top: 3px solid var(--kuqe-up); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; background: #fff; }
+.fkarte h4 { margin: 0; font-size: 15px; font-weight: 700; }
+.fkarte .fx { font-family: var(--math); font-size: 18px; }
+.fkarte .pershkrim { margin: 0; color: var(--hiri); font-size: 12.5px; line-height: 1.3; }
+.fkarte .hyrjet { display: grid; grid-template-columns: 1fr auto; gap: 3px 6px; align-items: center; color: var(--hiri); font-size: 12.5px; }
+.fkarte input[type="number"] { width: 86px; font: inherit; font-size: 13px; padding: 2px 6px; border: 1px solid var(--kufiri); border-radius: 5px; }
+.fkarte .rez { margin-top: auto; padding: 4px 8px; border-radius: 6px; background: #fbeeee; color: var(--kuqe-err); font-weight: 700; font-size: 13px; }
+
+/* ---------- kuizi ---------- */
+.kuizi { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.pyetja { border: 1px solid var(--kufiri); border-radius: 10px; padding: 10px 14px; font-size: 14.5px; }
+.pyetja h4 { margin: 0 0 6px; font-size: 15px; }
+.pyetja .opsionet { display: grid; gap: 4px; }
+.pyetja button { text-align: left; border: 1px solid var(--kufiri); background: var(--zbehte); border-radius: 6px; padding: 3px 8px; font-size: 13.5px; }
+.pyetja button:hover { border-color: var(--kuqe-up); }
+.pyetja button.sakte { background: #e4f2e6; border-color: var(--gjelber); }
+.pyetja button.gabim { background: #f9e3e0; border-color: var(--kuqe); }
+.pyetja .sqarim { display: none; margin-top: 6px; font-size: 13px; color: var(--hiri); }
+.pyetja.pergjigjur .sqarim { display: block; }
+.rezultati { grid-column: 1 / -1; font-size: 20px; font-weight: 800; padding: 10px 16px; border-left: 5px solid var(--kuqe-up); background: var(--zbehte); border-radius: 0 8px 8px 0; }
+kbd { border: 1px solid #999; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: .85em; font-family: inherit; }
+
+/* ---------- shiriti i navigimit ---------- */
+.shiriti { position: fixed; left: 0; right: 0; bottom: 0; height: 52px; display: flex; align-items: center; justify-content: center; gap: 10px; background: #1a1614; border-top: 2px solid var(--kuqe-up); z-index: 10; }
+.btn-ikone { width: 40px; height: 36px; border-radius: 8px; border: 1px solid #4a4340; background: #2a2523; color: #fff; font-size: 20px; line-height: 1; }
+.btn-ikone:hover { background: var(--kuqe-up); border-color: var(--kuqe-up); }
+.numri { color: #d6d1ce; min-width: 90px; text-align: center; font-variant-numeric: tabular-nums; font-size: 15px; }
+.menyja { position: fixed; left: 0; top: 0; bottom: 52px; width: 330px; background: #fff; z-index: 20; overflow: auto; transform: translateX(-100%); transition: transform .2s; box-shadow: 4px 0 30px rgba(0,0,0,.35); padding: 14px 10px 20px; }
+.menyja.hapur { transform: none; }
+.menyja .grupi { font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--kuqe-up); margin: 14px 8px 4px; }
+.menyja a { display: flex; gap: 8px; padding: 5px 8px; border-radius: 6px; color: var(--zeza); text-decoration: none; font-size: 14.5px; cursor: pointer; }
+.menyja a .n { color: var(--hiri-2); width: 26px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.menyja a:hover { background: var(--zbehte); }
+.menyja a.aktiv { background: #fbeeee; font-weight: 700; }
+
+/* ---------- ekranet e ngushta: sllajdi rrjedh vertikalisht ---------- */
+body.rrjedh { overflow: auto; background: var(--sfondi); }
+body.rrjedh .skena { position: static; display: block; padding-bottom: 60px; }
+body.rrjedh .sllajd { width: 100%; height: auto; min-height: calc(100vh - 52px); transform: none !important; box-shadow: none; font-size: 17px; }
+body.rrjedh .sl-koka { padding: 0 14px 0 20px; height: 54px; }
+body.rrjedh .sl-koka .uni { font-size: 10.5px; }
+body.rrjedh .sl-koka .grupi { display: none; }
+body.rrjedh .sl-trupi { padding: 16px 16px 16px 22px; overflow: visible; }
+body.rrjedh .sl-fund { padding: 0 14px 0 20px; }
+body.rrjedh .sl-titulli { font-size: 28px; }
+body.rrjedh .sl-nen { font-size: 17px; }
+body.rrjedh .shp, body.rrjedh .mod, body.rrjedh .titulli-faqe, body.rrjedh .permbajtja { grid-template-columns: 1fr; height: auto; gap: 18px; }
+body.rrjedh .shp-teksti { font-size: 17px; }
+body.rrjedh .kutia-formula .formula { font-size: 19px; }
+body.rrjedh .kanavca { width: 100%; height: auto; }
+body.rrjedh .mod-koka { flex-wrap: wrap; }
+body.rrjedh .mod-koka .sl-titulli { font-size: 24px; }
+body.rrjedh .titulli-faqe { padding: 20px 0; }
+body.rrjedh .titulli-faqe h1 { font-size: 36px; }
+body.rrjedh .titulli-faqe h1 span { font-size: 20px; }
+body.rrjedh .ndares { padding: 30px 6px; }
+body.rrjedh .ndares .numri-madh { font-size: 90px; }
+body.rrjedh .ndares h2 { font-size: 30px; }
+body.rrjedh .ndares ol, body.rrjedh .formulat, body.rrjedh .kuizi { grid-template-columns: 1fr; }
+body.rrjedh .fundi { padding: 60px 0; }
+body.rrjedh .fundi h2 { font-size: 36px; }
+body.rrjedh .rrethi { display: none; }
+
+/* sfondi interaktiv dhe pa rrëshqitje horizontale */
+.sllajd.erret .sl-trupi { overflow: hidden; }
+.sllajd.erret .sl-koka, .sllajd.erret .sl-trupi, .sllajd.erret .sl-fund { position: relative; z-index: 1; }
+.sfondi-p5 { position: absolute; inset: 0; z-index: 0; line-height: 0; }
+.sfondi-p5 canvas { display: block; }
+.sllajd.erret .sl-trupi > * { position: relative; }
+.sllajd.erret .rrethi { position: absolute; }
+.udhezim { position: absolute !important; right: 24px; bottom: 6px; margin: 0; font-size: 14px; color: #b5aeab; z-index: 2; }
+.ekipi-kuti, .titulli-faqe > div:first-child, .fundi { pointer-events: auto; }
+body, .sl-trupi { overflow-x: hidden; }
+body.rrjedh .udhezim { display: none; }
+
+.ref-teksti { font-size: 16px; color: var(--hiri); }
+.udhezim { display: none !important; }

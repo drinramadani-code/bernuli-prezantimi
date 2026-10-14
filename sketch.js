@@ -87,19 +87,51 @@ function shkruaj(p, txt, x, y, opt = {}) {
   p.noStroke();
   p.fill(opt.ngjyra || NGJ.boja);
   p.textFont(opt.dore === false ? SHKRONJA : SHKRONJA_DORE);
-  p.textSize((opt.madhesia || 18) * ZMADHIMI_TEKSTIT * SHKALLA_SHKRONJES);
+  const madh = (opt.madhesia || 18) * ZMADHIMI_TEKSTIT * SHKALLA_SHKRONJES;
+  p.textSize(madh);
   if (opt.trash) p.textStyle(p.BOLD);
-  p.textAlign(opt.rreshtim || p.LEFT, opt.vertikal || p.BASELINE);
+  // thyesat shkruhen si {numëruesi|emëruesi} dhe vizatohen njëra mbi tjetrën
+  const pjeset = String(txt).split(/(\{[^{}|]*\|[^{}]*\})/).filter((t) => t !== "");
+  const kaThyese = pjeset.some((t) => t[0] === "{");
+  const gjeresia = (t) => {
+    if (t[0] !== "{") return p.textWidth(t);
+    const [a, b] = t.slice(1, -1).split("|");
+    p.textSize(madh * 0.86); const w = Math.max(p.textWidth(a), p.textWidth(b)) + madh * 0.2; p.textSize(madh);
+    return w;
+  };
+  const w = pjeset.reduce((s, t) => s + gjeresia(t), 0);
+  const rr = opt.rreshtim || p.LEFT;
+  let x0 = x;
+  if (rr === p.CENTER) x0 = x - w / 2;
+  if (rr === p.RIGHT) x0 = x - w;
   if (opt.sfond) {
-    const w = p.textWidth(txt), h = (opt.madhesia || 18) * ZMADHIMI_TEKSTIT * SHKALLA_SHKRONJES;
-    let x0 = x;
-    if ((opt.rreshtim || p.LEFT) === p.CENTER) x0 = x - w / 2;
-    if ((opt.rreshtim || p.LEFT) === p.RIGHT) x0 = x - w;
+    const h = kaThyese ? madh * 1.9 : madh * 1.1;
     p.fill(opt.sfond);
-    p.rect(x0 - 4, y - h * 0.85, w + 8, h * 1.1, 3);
+    p.rect(x0 - 4, y - (kaThyese ? madh * 1.25 : madh * 0.85), w + 8, h, 3);
     p.fill(opt.ngjyra || NGJ.boja);
   }
-  p.text(txt, x, y);
+  if (!kaThyese) {
+    p.textAlign(rr, opt.vertikal || p.BASELINE);
+    p.text(txt, x, y);
+  } else {
+    p.textAlign(p.LEFT, p.BASELINE);
+    let xx = x0;
+    const yv = y - madh * 0.3;            // lartësia e vijës së thyesës
+    for (const t of pjeset) {
+      const wt = gjeresia(t);
+      if (t[0] !== "{") { p.text(t, xx, y); }
+      else {
+        const [a, b] = t.slice(1, -1).split("|");
+        p.textSize(madh * 0.86); p.textAlign(p.CENTER, p.BASELINE);
+        p.text(a, xx + wt / 2, yv - madh * 0.12);
+        p.text(b, xx + wt / 2, yv + madh * 0.62);
+        p.stroke(opt.ngjyra || NGJ.boja); p.strokeWeight(Math.max(1, madh * 0.06));
+        p.line(xx + madh * 0.06, yv, xx + wt - madh * 0.06, yv); p.noStroke();
+        p.textSize(madh); p.textAlign(p.LEFT, p.BASELINE);
+      }
+      xx += wt;
+    }
+  }
   p.pop();
 }
 
@@ -209,6 +241,32 @@ function kufizo(x, a, b) { return Math.max(a, Math.min(b, x)); }
 const MODULET = [];
 function regjistro(m) { MODULET.push(m); }
 
+// ---------- thyesat në HTML: a/b shndërrohet në thyesë njëra mbi tjetrën ----------
+const NJESITE_L = new Set(["m", "km", "kg", "L", "J", "m³", "N", "kN", "Pa", "kPa"]);
+const NJESITE_D = new Set(["s", "h", "m³", "kg", "N", "m²", "s²", "m"]);
+function hiqKllapat(t) {
+  if (t[0] !== "(" || t[t.length - 1] !== ")") return t;
+  let d = 0;
+  for (let i = 0; i < t.length; i++) { if (t[i] === "(") d++; else if (t[i] === ")") { d--; if (d === 0 && i < t.length - 1) return t; } }
+  return t.slice(1, -1);
+}
+function thyesatTekst(t) {
+  const op = "(?:[^\\s=+−·,;:()/<>]*\\((?:[^()]|\\([^()]*\\))*\\)|[^\\s=+−·,;:()/<>]+)";
+  const re = new RegExp("(" + op + ")/(" + op + ")", "g");
+  return t.replace(re, (m, a, b) => {
+    let pas = "";
+    const pk = b.match(/\.+$/);
+    if (pk) { pas = pk[0]; b = b.slice(0, -pas.length); }
+    if (NJESITE_L.has(a) && NJESITE_D.has(b)) return m;
+    if (/^[\d,.]+$/.test(a) && /^[\d,.]+$/.test(b)) return m;
+    return '<span class="frx"><span>' + hiqKllapat(a) + '</span><span>' + hiqKllapat(b) + '</span></span>' + pas;
+  });
+}
+function thyesatHTML(html) {
+  if (!html || html.indexOf("/") < 0) return html;
+  return String(html).split(/(<[^>]+>)/).map((c) => (c[0] === "<" ? c : thyesatTekst(c))).join("");
+}
+
 // =====================================================================
 //  PJESA 2 – modulet. Çdo modul ndjek një pjesë të dokumentit.
 // =====================================================================
@@ -273,13 +331,13 @@ regjistro({
 // ---------------------------------------------------------------------
 (function () {
   const KARTAT = [
-    { t: "Dendësia e fluidit", fx: "ρ = m / V", d: "Masa në njësinë e vëllimit.",
+    { t: "Dendësia e fluidit", fx: "ρ = m/V", d: "Masa në njësinë e vëllimit.",
       h: [["m", "Masa m (kg)", 998.2], ["V", "Vëllimi V (m³)", 1]],
       r: (v) => `ρ = ${fmt(v.m / v.V, 1)} kg/m³` },
     { t: "Pesha e trupit", fx: "G = m · g", d: "g ≈ 9,81 m/s² – nxitimi gravitacional.",
       h: [["m", "Masa m (kg)", 10]],
       r: (v) => `G = ${fmt(v.m * g, 1)} N` },
-    { t: "Presioni", fx: "p = F / A", d: "Forca pingul mbi njësinë e sipërfaqes; 1 atm = 101 325 Pa.",
+    { t: "Presioni", fx: "p = F/A", d: "Forca pingul mbi njësinë e sipërfaqes; 1 atm = 101 325 Pa.",
       h: [["F", "Forca F (N)", 700], ["A", "Sipërfaqja A (m²)", 0.05]],
       r: (v) => { const pr = v.F / v.A; return `p = ${fmt(pr, 0)} Pa = ${fmt(pr / P_ATM, 3)} atm`; } },
     { t: "Presioni hidrostatik", fx: "p = p₀ + ρ · g · h", d: "Presioni në thellësinë h nën sipërfaqen e lirë të fluidit në qetësi.",
@@ -317,7 +375,7 @@ regjistro({
       KARTAT.forEach((k) => {
         const c = document.createElement("div");
         c.className = "fkarte";
-        c.innerHTML = `<h4>${k.t}</h4><div class="fx">${k.fx}</div><p class="pershkrim">${k.d}</p>`;
+        c.innerHTML = `<h4>${k.t}</h4><div class="fx">${thyesatHTML(k.fx)}</div><p class="pershkrim">${thyesatHTML(k.d)}</p>`;
         const hy = document.createElement("div"); hy.className = "hyrjet";
         const vl = {};
         const rez = document.createElement("div"); rez.className = "rez";
@@ -581,7 +639,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
   }
 
   regjistro({
-    id: "sifoni", nr: 8, grupi: "2. Zbatimi i ekuacionit",
+    id: "sifoni", nr: 9, grupi: "2. Zbatimi i ekuacionit",
     titulli: "Shpejtësia e rrjedhjes: sifoni", titulliShkurt: "Sifoni",
     nentitulli: "Shpejtësia me të cilën lëngu del nga sifoni varet vetëm nga diferenca e lartësive.",
     kontrollet: [
@@ -661,7 +719,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
       // kufiri i presionit atmosferik
       const yKufi = yp(y2 + kufiri);
       p.stroke(NGJ.kuqe); p.strokeWeight(1.5); vijeNderprere(p, XE0, yKufi, 980, yKufi, 10, 6);
-      shkruaj(p, "kufiri: pₐ/(ρg) ≈ 10,3 m mbi sipërfaqe", 975, yKufi - 8, { madhesia: 16, ngjyra: NGJ.kuqe, rreshtim: p.RIGHT });
+      shkruaj(p, "kufiri: {pₐ|ρg} ≈ 10,3 m mbi sipërfaqe", 975, yKufi - 8, { madhesia: 16, ngjyra: NGJ.kuqe, rreshtim: p.RIGHT });
 
       // paneli i rezultatit
       const bx = 735, by = 300;
@@ -691,7 +749,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
 })();
 
 // ---------------------------------------------------------------------
-//  Moduli 5 – Forma për njësi peshe: z + p/ρg + v²/2g = H = konst (ek. 1.7)
+//  Moduli 5 – Forma me gjatësi: z + p/ρg + v²/2g = H = konst
 //  Rezervuar me nivel konstant + tub me ngushtim dhe ngjitje
 // ---------------------------------------------------------------------
 
@@ -715,8 +773,8 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
 
   regjistro({
     id: "pesha", nr: 5, grupi: "1. Ekuacioni i Bernulit",
-    titulli: "Forma për njësi peshe", titulliShkurt: "Njësi peshe [J/N = m]",
-    nentitulli: "Kur ekuacioni pjesëtohet me ρg, secili term bëhet lartësi dhe matet në metra.",
+    titulli: "Forma me gjatësi (lartësi)", titulliShkurt: "Forma me gjatësi [m]",
+    nentitulli: "Kur ekuacioni pjesëtohet me ρg, të gjithë termat bëhen gjatësi dhe maten në metra.",
     kontrollet: [
       { lloji: "rreshqites", id: "Q", etiketa: "Prurja Q = A·v", min: 0, max: 20, hapi: 0.5, vlera: 12, njesia: "L/s", dhjetore: 1 },
       { lloji: "rreshqites", id: "D2", etiketa: "Diametri në ngushtim D₂", min: 40, max: 100, hapi: 1, vlera: 60, njesia: "mm", dhjetore: 0 },
@@ -726,10 +784,10 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
       { lloji: "buton", id: "hap", etiketa: "Hap ventilin" }
     ],
     shpjegimi: `
-      <p>Në hidraulikë ekuacioni i Bernulit shkruhet më shpesh për njësi peshe. Atëherë të gjithë termat janë lartësi: z është lartësia gjeometrike, p/ρg lartësia piezometrike dhe v²/2g lartësia e shpejtësisë. Shuma e tyre quhet lartësia e plotë H.</p>
+      <p>Në hidraulikë ekuacioni i Bernulit shkruhet më shpesh në formë gjatësie. Kjo fitohet kur ekuacioni pjesëtohet me ρg, pra me peshën e një metri kub fluid, kështu që secili term ka njësinë e gjatësisë, metrin. Termat quhen lartësi: z është lartësia gjeometrike, p/ρg lartësia piezometrike dhe v²/2g lartësia e shpejtësisë. Shuma e tyre quhet lartësia e plotë H.</p>
       <p>Përparësia e kësaj forme është se termat e saj maten drejtpërdrejt. Piezometri tregon lartësinë piezometrike, kurse tubi Pitot tregon edhe lartësinë e shpejtësisë. Majat e piezometrave formojnë vijën piezometrike, ndërsa vija energjetike te fluidi ideal mbetet horizontale.</p>
       <p>Në simulim mund të ndryshohet prurja, ngushtimi dhe lartësia e gypit. Kur ventili mbyllet, uji ndalet dhe të gjithë piezometrat ngjiten deri në nivelin e rezervuarit.</p>`,
-    formula: `<span class="z">z</span> + <span class="p"><span class="frx"><span>p</span><span>ρg</span></span></span> + <span class="v"><span class="frx"><span>v²</span><span>2g</span></span></span> = H = konst<small>njësia J/N = m</small>`,
+    formula: `<span class="z">z</span> + <span class="p"><span class="frx"><span>p</span><span>ρg</span></span></span> + <span class="v"><span class="frx"><span>v²</span><span>2g</span></span></span> = H = konst<small>të gjithë termat janë gjatësi, njësia: metër (m)</small>`,
 
     fillo(p, K) { K.gj.gr = new Grimcat(170, XT, XF); K.gj.Qcak = null; },
 
@@ -846,14 +904,14 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
       // legjenda
       const lx = 160, ly = 30;
       p.noStroke();
-      [[NGJ.z, "z"], [NGJ.p, "p/ρg"], [NGJ.v, "v²/2g"]].forEach(([c, t], i) => {
+      [[NGJ.z, "z"], [NGJ.p, "{p|ρg}"], [NGJ.v, "{v²|2g}"]].forEach(([c, t], i) => {
         p.fill(c); p.rect(lx + i * 95, ly, 16, 10);
         shkruaj(p, t, lx + i * 95 + 22, ly + 11, { madhesia: 17 });
       });
       shkruaj(p, "FLUID IDEAL", 990, 30, { madhesia: 19, rreshtim: p.RIGHT });
-      if (Q === 0) shkruaj(p, "Fluidi në qetësi (v = 0): z + p/ρg = H", 600, 70, { madhesia: 20, ngjyra: NGJ.p, rreshtim: p.CENTER, sfond: NGJ.letra });
+      if (Q === 0) shkruaj(p, "Fluidi në qetësi (v = 0): z + {p|ρg} = H", 600, 70, { madhesia: 20, ngjyra: NGJ.p, rreshtim: p.CENTER, sfond: NGJ.letra });
 
-      K.lexo(tab + `<div class="rresht"><span>Të gjitha vlerat në metra (J/N)</span><b>v₁ = ${fmt(v1, 2)} m/s</b></div>`);
+      K.lexo(tab + `<div class="rresht"><span>Të gjitha vlerat janë gjatësi, në metra</span><b>v₁ = ${fmt(v1, 2)} m/s</b></div>`);
     }
   });
 })();
@@ -935,7 +993,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
           else shkruaj(p, t, x + w / 2 + 8, y - hh / 2 + 6, { madhesia: 15, ngjyra: ngjyrat[k], dore: false });
           y -= hh;
         });
-        if (E[0] < 0) shkruaj(p, "P/ρ = " + fmt(E[0], 1) + " J/kg (nënpresion)", x, BAZA_SH + 22, { madhesia: 15, rreshtim: p.CENTER, ngjyra: NGJ.kuqe, dore: false });
+        if (E[0] < 0) shkruaj(p, "{P|ρ} = " + fmt(E[0], 1) + " J/kg (nënpresion)", x, BAZA_SH + 22, { madhesia: 15, rreshtim: p.CENTER, ngjyra: NGJ.kuqe, dore: false });
         p.stroke(NGJ.boja); p.strokeWeight(1.5); p.line(x - w / 2 - 8, BAZA_SH, x + w / 2 + 8, BAZA_SH);
         shkruaj(p, "Σ = " + fmt(E[0] + E[1] + E[2], 1) + " J/kg", x, BAZA_SH - tot * sh - 14, { madhesia: 20, rreshtim: p.CENTER, dore: false });
       }
@@ -944,7 +1002,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
       shkruaj(p, "energjia e 1 kg lëng mbetet e njëjtë", (X1 + X2) / 2, ySum + 26, { madhesia: 17, rreshtim: p.CENTER, ngjyra: NGJ.kuqe });
 
       // legjenda
-      [["P/ρ  energjia e presionit", NGJ.p], ["gh  energjia potenciale", NGJ.z], ["v²/2  energjia kinetike", NGJ.v]].forEach(([t, c], i) => {
+      [["{P|ρ}  energjia e presionit", NGJ.p], ["gh  energjia potenciale", NGJ.z], ["{v²|2}  energjia kinetike", NGJ.v]].forEach(([t, c], i) => {
         p.noStroke(); p.fill(c); p.rect(395, 200 + i * 34, 18, 14);
         shkruaj(p, t, 422, 213 + i * 34, { madhesia: 17 });
       });
@@ -963,6 +1021,91 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
 
 
 // ---------------------------------------------------------------------
+//  Moduli 7 – Fluidi real: humbjet gjatësore dhe lokale
+// ---------------------------------------------------------------------
+(function () {
+  const XR0 = 30, XR1 = 130, XA = 130, XB = 950, XV = 545, YG = 470;
+  const PIEZO = [230, 400, 690, 860];
+  regjistro({
+    id: "humbjet", nr: 7, grupi: "1. Ekuacioni i Bernulit",
+    titulli: "Fluidi real: humbjet e energjisë", titulliShkurt: "Humbjet e energjisë",
+    nentitulli: "Te fluidi real një pjesë e energjisë humbet nga fërkimi, prandaj vija energjetike bie përgjatë gypit.",
+    kontrollet: [
+      { lloji: "rreshqites", id: "v", etiketa: "Shpejtësia e ujit në gyp, v", min: 0.2, max: 4, hapi: 0.1, vlera: 2, njesia: "m/s", dhjetore: 1 },
+      { lloji: "rreshqites", id: "L", etiketa: "Gjatësia e gypit, L", min: 20, max: 500, hapi: 10, vlera: 200, njesia: "m", dhjetore: 0 },
+      { lloji: "rreshqites", id: "d", etiketa: "Diametri i gypit, d", min: 50, max: 300, hapi: 5, vlera: 100, njesia: "mm", dhjetore: 0 },
+      { lloji: "rreshqites", id: "lam", etiketa: "Koeficienti i fërkimit, λ", min: 0.01, max: 0.05, hapi: 0.001, vlera: 0.02, njesia: "", dhjetore: 3 },
+      { lloji: "rreshqites", id: "zeta", etiketa: "Koeficienti i ventilit, ζ (0,2 = i hapur)", min: 0, max: 20, hapi: 0.1, vlera: 5, njesia: "", dhjetore: 1 },
+      { lloji: "rreshqites", id: "H", etiketa: "Niveli i ujit mbi gyp, H", min: 10, max: 40, hapi: 0.5, vlera: 20, njesia: "m", dhjetore: 1 }
+    ],
+    shpjegimi: `
+      <p>Deri tani fluidin e kemi marrë ideal, pa viskozitet. Te fluidet reale shfaqet fërkimi ndërmjet shtresave të fluidit dhe ndërmjet fluidit dhe mureve të gypit. Për shkak të tij, një pjesë e energjisë shndërrohet në nxehtësi dhe nuk mund të shfrytëzohet më për rrjedhjen. Prandaj ekuacionit të Bernulit i shtohet termi i humbjeve h<sub>h</sub>.</p>
+      <p>Humbjet gjatësore ndodhin përgjatë gjithë gypit dhe rriten me gjatësinë e gypit dhe me katrorin e shpejtësisë, ndërsa zvogëlohen kur gypi është më i gjerë. Humbjet lokale ndodhin aty ku rrjedha ndryshon drejtim ose prerje, si te bërrylat dhe ventilat.</p>
+      <p>Në simulim gypi është horizontal dhe ka diametër të njëjtë, kështu që shpejtësia nuk ndryshon. E gjithë energjia që humbet shfaqet si rënie e presionit, që e shohim në piezometra.</p>`,
+    formula: `<span style="font-size:20px">z₁ + p₁/ρg + v₁²/2g = z₂ + p₂/ρg + v₂²/2g + h<sub>h</sub></span><br>h<sub>f</sub> = λ(L/d)·v²/2g &nbsp;&nbsp; h<sub>m</sub> = ζ·v²/2g<small>h<sub>f</sub> humbjet gjatësore, h<sub>m</sub> humbjet lokale</small>`,
+    fillo(p, K) { K.gj.s = 0; },
+    vizato(p, K) {
+      const v = K.v("v"), L = K.v("L"), d = K.v("d") / 1000, lam = K.v("lam"), zeta = K.v("zeta"), H = K.v("H");
+      const hv = v * v / (2 * g), hf = lam * (L / d) * hv, hm = zeta * hv, hh = hf + hm;
+      const PX = 330 / H, yp = (z) => YG - z * PX;
+      const xm = (x) => (x - XA) / (XB - XA) * L;                       // pozita në metra
+      const E = (x) => H - lam * (xm(x) / d) * hv - (x > XV ? hm : 0);
+      const Pz = (x) => E(x) - hv;
+      const r = Math.max(6, K.v("d") * 0.09);
+      // rezervuari
+      p.noStroke(); p.fill(NGJ.uji); p.rect(XR0, yp(H), XR1 - XR0, YG + r - yp(H));
+      p.stroke(NGJ.boja); p.strokeWeight(3); p.noFill();
+      p.line(XR0, yp(H) - 30, XR0, YG + r + 20); p.line(XR0, YG + r + 20, XR1, YG + r + 20); p.line(XR1, YG + r + 20, XR1, YG + r); p.line(XR1, YG - r, XR1, yp(H) - 30);
+      shkruaj(p, "▽", XR0 + 40, yp(H) - 4, { madhesia: 15, ngjyra: NGJ.p });
+      // gypi
+      p.noStroke(); p.fill(NGJ.uji); p.rect(XA, YG - r, XB - XA, 2 * r);
+      p.stroke(NGJ.boja); p.strokeWeight(3); p.line(XA, YG - r, XV - 14, YG - r); p.line(XA, YG + r, XV - 14, YG + r); p.line(XV + 14, YG - r, XB, YG - r); p.line(XV + 14, YG + r, XB, YG + r);
+      K.gj.s = (K.gj.s + v * 40 * K.dt) % 40;
+      p.noStroke(); p.fill("#fff");
+      for (let x = XA + K.gj.s; x < XB; x += 40) { p.circle(x, YG - r * 0.4, 4); p.circle(x + 20, YG + r * 0.4, 4); }
+      // ventili
+      p.stroke(NGJ.boja); p.strokeWeight(2); p.fill("#cfd4dc");
+      p.triangle(XV - 14, YG - r - 6, XV - 14, YG + r + 6, XV, YG); p.triangle(XV + 14, YG - r - 6, XV + 14, YG + r + 6, XV, YG);
+      p.line(XV, YG - r - 6, XV, YG - r - 26); p.line(XV - 12, YG - r - 26, XV + 12, YG - r - 26);
+      shkruaj(p, "ventili, ζ = " + fmt(zeta, 1), XV, YG + r + 30, { madhesia: 16, ngjyra: NGJ.boja2, rreshtim: p.CENTER });
+      shkruaj(p, "L = " + fmt(L, 0) + " m,  d = " + fmt(K.v("d"), 0) + " mm", XB, YG + r + 30, { madhesia: 16, ngjyra: NGJ.boja2, rreshtim: p.RIGHT });
+      // vija ideale
+      p.stroke(150); p.strokeWeight(1.5); vijeNderprere(p, XA, yp(H), XB, yp(H), 4, 4);
+      // vija energjetike dhe piezometrike
+      const vija = (f, ngj) => {
+        p.stroke(ngj); p.strokeWeight(2.5);
+        vijeNderprere(p, XA, yp(Math.max(0, f(XA))), XV, yp(Math.max(0, f(XV - 0.01))), 9, 6);
+        p.line(XV, yp(Math.max(0, f(XV - 0.01))), XV, yp(Math.max(0, f(XV + 0.01))));
+        vijeNderprere(p, XV, yp(Math.max(0, f(XV + 0.01))), XB, yp(Math.max(0, f(XB))), 9, 6);
+      };
+      vija(E, NGJ.kuqe); vija(Pz, NGJ.p);
+      // legjenda
+      const leg = [["vija energjetike", NGJ.kuqe], ["vija piezometrike", NGJ.p], ["fluid ideal (pa humbje)", 150]];
+      leg.forEach(([t, c], i) => { const y = 34 + i * 24; p.stroke(c); p.strokeWeight(2.5); vijeNderprere(p, 700, y - 5, 740, y - 5, 7, 4); shkruaj(p, t, 750, y, { madhesia: 16, ngjyra: NGJ.boja }); });
+      // piezometrat
+      for (const x of PIEZO) {
+        const top = Math.max(0, Pz(x));
+        p.noStroke(); p.fill(NGJ.p); p.rect(x - 4, yp(top), 8, YG - r - yp(top));
+        p.stroke(NGJ.boja); p.strokeWeight(1.3); p.line(x - 6, YG - r, x - 6, yp(H) - 20); p.line(x + 6, YG - r, x + 6, yp(H) - 20);
+      }
+      // kuotat
+      if (hh > 0.05 && E(XB) > 0) { kuota(p, XB - 40, yp(H), XB - 40, yp(E(XB)), "", NGJ.kuqe); shkruaj(p, "hₕ = " + fmt(hh, 2) + " m", XB - 50, (yp(H) + yp(E(XB))) / 2 + 6, { madhesia: 18, ngjyra: NGJ.kuqe, rreshtim: p.RIGHT, sfond: NGJ.letra }); }
+      if (hm > 0.05) shkruaj(p, "hₘ = " + fmt(hm, 2) + " m", XV + 10, (yp(E(XV - 0.01)) + yp(E(XV + 0.01))) / 2 + 6, { madhesia: 16, ngjyra: NGJ.kuqe, sfond: NGJ.letra });
+      const ok = Pz(XB) > 0;
+      const dp = 998.2 * g * hh;
+      shkruaj(p, ok ? "Rënia e presionit: Δp = ρg·hₕ = " + fmt(dp / 1000, 1) + " kPa" : "Humbjet e kalojnë nivelin në rezervuar: uji nuk rrjedh dot me këtë shpejtësi.", 40, 40, { madhesia: 19, ngjyra: ok ? NGJ.boja : NGJ.kuqe, trash: true });
+      K.lexo(`
+        <div class="rresht"><span>Lartësia e shpejtësisë v²/2g</span><b>${fmt(hv, 3)} m</b></div>
+        <div class="rresht"><span>Humbjet gjatësore h<sub>f</sub> = λ(L/d)v²/2g</span><b>${fmt(hf, 2)} m</b></div>
+        <div class="rresht"><span>Humbja lokale h<sub>m</sub> = ζv²/2g</span><b>${fmt(hm, 2)} m</b></div>
+        <div class="rresht"><span>Humbjet gjithsej h<sub>h</sub></span><b>${fmt(hh, 2)} m</b></div>
+        <div class="rresht"><span>Rënia e presionit Δp = ρg·h<sub>h</sub></span><b>${fmt(dp / 1000, 1)} kPa</b></div>
+        <div class="rresht"><span>Prurja Q = A·v</span><b>${fmt(Math.PI * d * d / 4 * v * 1000, 2)} L/s</b></div>`);
+    }
+  });
+})();
+
+// ---------------------------------------------------------------------
 //  Moduli 7 – Bernuli në jetën e përditshme: spërkatësi i parfumit
 // ---------------------------------------------------------------------
 (function () {
@@ -979,7 +1122,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
   };
 
   regjistro({
-    id: "parfumi", nr: 7, grupi: "2. Zbatimi i ekuacionit",
+    id: "parfumi", nr: 8, grupi: "2. Zbatimi i ekuacionit",
     titulli: "Spërkatësi i parfumit", titulliShkurt: "Spërkatësi i parfumit",
     nentitulli: "Rryma e shpejtë e ajrit mbi gyp e ul presionin dhe lëngu ngjitet nga shishja.",
     kontrollet: [
@@ -1079,7 +1222,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
         shkruaj(p, "F", cx + 12, cy + ry + 30, { madhesia: 22, ngjyra: NGJ.kuqe });
       }
       shkruaj(p, "pompa e gomës", cx, cy + ry + 66, { madhesia: 17, ngjyra: NGJ.boja2, rreshtim: p.CENTER });
-      shkruaj(p, "p = F/A", cx, cy + 6, { madhesia: 19, ngjyra: "#fff", rreshtim: p.CENTER });
+      shkruaj(p, "p = {F|A}", cx, cy + 6, { madhesia: 19, ngjyra: "#fff", rreshtim: p.CENTER });
 
       // ---------- rryma e ajrit ----------
       if (va > 0.5) {
@@ -1139,10 +1282,10 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
       p.stroke(NGJ.boja); p.strokeWeight(1.2); p.fill(NGJ.letra); p.rect(px, py, 225, 228, 4);
       let yy = py + 30;
       const rr = (t, c, m) => { shkruaj(p, t, px + 12, yy, { madhesia: m || 17, ngjyra: c || NGJ.boja }); yy += 30; };
-      rr("p = F/A = " + fmt(pb, 0) + " Pa");
-      rr("v = √(2p/ρₐ) = " + fmt(va, 1) + " m/s", NGJ.v);
+      rr("p = {F|A} = " + fmt(pb, 0) + " Pa");
+      rr("v = √{2p|ρₐ} = " + fmt(va, 1) + " m/s", NGJ.v);
       rr("Δp = ½ρₐv² = " + fmt(dp, 0) + " Pa", NGJ.p);
-      rr("hₘₐₓ = Δp/(ρg) = " + fmt(hmax * 100, 1) + " cm");
+      rr("hₘₐₓ = {Δp|ρg} = " + fmt(hmax * 100, 1) + " cm");
       rr("h = " + fmt(hcm, 1) + " cm", NGJ.z);
       yy += 6;
       if (sperkat) rr("Parfumi spërkatet", "#3f7a32", 21);
@@ -1194,7 +1337,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
   }
 
   regjistro({
-    id: "rezervuari", nr: 11, grupi: "2. Zbatimi i ekuacionit",
+    id: "rezervuari", nr: 12, grupi: "2. Zbatimi i ekuacionit",
     titulli: "Furnizimi i ndërtesës me ujë nga rezervuari", titulliShkurt: "Rezervuari dhe ndërtesa",
     nentitulli: "Shpejtësia, prurja dhe presionet në një rrjet të thjeshtë ujësjellësi.",
     kontrollet: [
@@ -1333,8 +1476,8 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
       };
       piezometer(XS1, yG, 0, h1, "1", w1);
       piezometer(XS2, yZ2, z2, h2, "2", w2);
-      shkruaj(p, "p₁/ρg = " + fmt(h1, 2) + " m", XS1 + 14, Math.max(yp(z0) + 40, (yp(h1) + yG) / 2), { madhesia: 16, ngjyra: NGJ.p, sfond: NGJ.letra });
-      shkruaj(p, "p₂/ρg = " + fmt(h2, 2) + " m", XS2 - 12, Math.max(yp(z0) + 40, (yp(z2 + h2) + yZ2) / 2), { madhesia: 16, ngjyra: NGJ.p, rreshtim: p.RIGHT, sfond: NGJ.letra });
+      shkruaj(p, "{p₁|ρg} = " + fmt(h1, 2) + " m", XS1 + 14, Math.max(yp(z0) + 40, (yp(h1) + yG) / 2), { madhesia: 16, ngjyra: NGJ.p, sfond: NGJ.letra });
+      shkruaj(p, "{p₂|ρg} = " + fmt(h2, 2) + " m", XS2 - 12, Math.max(yp(z0) + 40, (yp(z2 + h2) + yZ2) / 2), { madhesia: 16, ngjyra: NGJ.p, rreshtim: p.RIGHT, sfond: NGJ.letra });
 
       // ---------- manometrat ----------
       const pMax = 400;
@@ -1456,7 +1599,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
   }
   const RHO = { det: 1.225, m3000: 0.909, m10000: 0.413 };
   regjistro({
-    id: "aeroplani", nr: 9, grupi: "2. Zbatimi i ekuacionit",
+    id: "aeroplani", nr: 10, grupi: "2. Zbatimi i ekuacionit",
     titulli: "Krahu i aeroplanit", titulliShkurt: "Krahu i aeroplanit",
     nentitulli: "Ajri mbi krah lëviz më shpejt se ai nën krah, prandaj presioni sipër është më i vogël.",
     kontrollet: [
@@ -1480,12 +1623,13 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
       // krahu
       const pts = [];
       for (let i = 0; i <= 60; i++) { const t = (1 - Math.cos(Math.PI * i / 60)) / 2; pts.push([t, naca(t)]); }
-      const tr = (x, y) => [OX + C * (x * Math.cos(-al) + y * Math.sin(-al)) * 1, OY - C * (-x * Math.sin(-al) + y * Math.cos(-al))];
+      const tr = (x, y) => [OX + C * (x * Math.cos(al) + y * Math.sin(al)), OY - C * (-x * Math.sin(al) + y * Math.cos(al))];   // hunda lart, bishti poshtë
       // vijat e rrjedhjes
-      const lart = [42, 92, 142], posht = [52, 112, 172];
+      const lart = [64, 114, 164], posht = [82, 132, 182];
       const yS = (x, y0, sh) => {
         const m = OX + C * 0.35, b = Math.exp(-(((x - m) / 210) ** 2));
-        return OY - y0 - sh * b * (60 + 600 * al) / (1 + Math.abs(y0) / 60);
+        const t = kufizo((x - (OX + C * 0.7)) / (C * 0.9), 0, 1), poshte = (3 * t * t - 2 * t * t * t) * (10 + 420 * al) / (1 + Math.abs(y0) / 90);   // ajri devijohet poshtë pas krahut
+        return OY - y0 - sh * b * (60 + 600 * al) / (1 + Math.abs(y0) / 60) + poshte;
       };
       p.strokeWeight(1.6);
       p.stroke(NGJ.p); for (const y0 of lart) { p.noFill(); p.beginShape(); for (let x = 20; x <= 980; x += 10) p.vertex(x, yS(x, y0, 1)); p.endShape(); }
@@ -1512,8 +1656,9 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
       const Lf = Math.min(200, F / 150);
       if (Lf > 4) { shigjeta(p, fx, fy, fx, fy - Lf, NGJ.kuqe, 5, 18); shkruaj(p, "F = " + fmt(F / 1000, 1) + " kN", fx + 14, fy - Lf + 12, { madhesia: 22, ngjyra: NGJ.kuqe, trash: true }); }
       const Lg = Math.min(200, G / 150);
-      shigjeta(p, fx + 120, fy + 20, fx + 120, fy + 20 + Lg * 0.6, NGJ.boja2, 3, 12);
-      shkruaj(p, "G ≈ " + fmt(G / 1000, 1) + " kN (1100 kg)", fx + 132, fy + 20 + Lg * 0.6, { madhesia: 17, ngjyra: NGJ.boja2 });
+      const [gx, gy] = tr(0.33, naca(0.33)[1]);
+      shigjeta(p, gx, gy + 4, gx, gy + 4 + Lg * 0.55, NGJ.boja2, 3, 12);
+      shkruaj(p, "G ≈ " + fmt(G / 1000, 1) + " kN (1100 kg)", gx + 12, gy + 4 + Lg * 0.55, { madhesia: 17, ngjyra: NGJ.boja2, sfond: NGJ.letra });
       shkruaj(p, "Sipër krahut: vₛ = " + fmt(vs, 1) + " m/s, presion më i vogël", 980, 60, { madhesia: 18, ngjyra: NGJ.p, rreshtim: p.RIGHT });
       shkruaj(p, "Nën krah: vₚ = " + fmt(vp, 1) + " m/s, presion më i madh", 980, 520, { madhesia: 18, ngjyra: NGJ.ujiErr, rreshtim: p.RIGHT });
       const ngrihet = F >= G;
@@ -1536,7 +1681,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
   const YC = 200, XA = 30, XB = 860, X1 = 260, X2 = 400, X3 = 560, X4 = 700, PXCM = 22;
   const RHO_A = 1.2, RHO_B = 740;
   regjistro({
-    id: "karburatori", nr: 10, grupi: "2. Zbatimi i ekuacionit",
+    id: "karburatori", nr: 11, grupi: "2. Zbatimi i ekuacionit",
     titulli: "Karburatori", titulliShkurt: "Karburatori",
     nentitulli: "Në ngushtimin e gypit ajri shpejton, presioni bie dhe benzina thithet në rrymën e ajrit.",
     kontrollet: [
@@ -1597,7 +1742,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
       p.stroke(NGJ.boja); p.strokeWeight(1.2); p.fill(NGJ.letra); p.rect(bx, by, 330, 200, 6);
       let yy = by + 32;
       const rr2 = (t, c) => { shkruaj(p, t, bx + 14, yy, { madhesia: 19, ngjyra: c || NGJ.boja }); yy += 32; };
-      rr2("v₂ = v₁·A₁/A₂ = " + fmt(v2, 1) + " m/s", NGJ.v);
+      rr2("v₂ = v₁·{A₁|A₂} = " + fmt(v2, 1) + " m/s", NGJ.v);
       rr2("pₐ − p₂ = " + fmt(dp, 0) + " Pa", NGJ.p);
       rr2("ρ·g·h (benzina) = " + fmt(RHO_B * g * h, 0) + " Pa");
       rr2("hₘₐₓ = " + fmt(hmax * 100, 1) + " cm");
@@ -1617,7 +1762,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
 (function () {
   const PA = { det: 101.325, m1000: 89.9, m2000: 79.5 };
   regjistro({
-    id: "presionet", nr: 12, grupi: "3. Matja e presionit",
+    id: "presionet", nr: 13, grupi: "3. Matja e presionit",
     titulli: "Presioni absolut, manometrik dhe vakuumi", titulliShkurt: "Presioni absolut dhe manometrik",
     nentitulli: "I njëjti presion lexohet ndryshe, varësisht se nga cili nivel e matim.",
     kontrollet: [
@@ -1668,12 +1813,12 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
 (function () {
   const LM = { uji: ["Ujë", 998.2], merkur: ["Mërkur", 13546] };
   regjistro({
-    id: "manometri", nr: 13, grupi: "3. Matja e presionit",
+    id: "manometri", nr: 14, grupi: "3. Matja e presionit",
     titulli: "Matja e presionit me manometër", titulliShkurt: "Manometri",
     nentitulli: "Diferenca e presionit lexohet si diferencë e lartësisë së një shtylle lëngu.",
     kontrollet: [
       { lloji: "zgjedh", id: "lloji", etiketa: "Lloji i manometrit", vlera: "U", opsionet: [["piezo", "Piezometri (ujë në enë)"], ["U", "Manometri U – gaz, krahu tjetër i hapur"], ["dif", "Manometri diferencial – ujë në gyp"]] },
-      { lloji: "rreshqites", id: "dp", etiketa: "Presioni / diferenca e presionit, Δp", min: 0, max: 30, hapi: 0.1, vlera: 1.2, njesia: "kPa", dhjetore: 1 },
+      { lloji: "rreshqites", id: "dp", etiketa: "Presioni ose diferenca e presionit, Δp", min: 0, max: 30, hapi: 0.1, vlera: 1.2, njesia: "kPa", dhjetore: 1 },
       { lloji: "zgjedh", id: "lm", etiketa: "Lëngu manometrik", vlera: "uji", opsionet: [["uji", "Ujë – 998 kg/m³"], ["merkur", "Mërkur – 13 546 kg/m³"]] }
     ],
     shpjegimi: `
@@ -1728,7 +1873,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
         if (dhPx > 4) kuota(p, xr + 100, hl, xr + 100, hr, "Δh = " + (isFinite(dh) ? fmt(dh * 100, 1) + " cm" : "–"), NGJ.kuqe);
         shkruaj(p, "lëngu manometrik: " + emri, (xl + xr) / 2, yb + 50, { madhesia: 17, ngjyra: NGJ.boja2, rreshtim: p.CENTER });
       }
-      const f = lloji === "piezo" ? "h = pₘ/(ρg)" : lloji === "U" ? "pₘ = ρₘ g Δh" : "Δp = (ρₘ − ρ) g Δh";
+      const f = lloji === "piezo" ? "h = {pₘ|ρg}" : lloji === "U" ? "pₘ = ρₘ g Δh" : "Δp = (ρₘ − ρ) g Δh";
       shkruaj(p, f, 760, 470, { madhesia: 26, rreshtim: p.CENTER, trash: true });
       if (lloji === "dif" && K.v("lm") === "uji") shkruaj(p, "Me ujë në të dy anët Δh nuk krijohet – zgjidhni mërkurin", 760, 520, { madhesia: 15, ngjyra: NGJ.kuqe, rreshtim: p.CENTER });
       K.lexo(`
@@ -1747,7 +1892,7 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
   const FL = { ajer: ["Ajër", 1.2], uji: ["Ujë", 998.2] };
   const LM = { uji: ["Ujë", 998.2], merkur: ["Mërkur", 13546] };
   regjistro({
-    id: "pitot", nr: 14, grupi: "3. Matja e presionit",
+    id: "pitot", nr: 15, grupi: "3. Matja e presionit",
     titulli: "Tubi Pitot-statik", titulliShkurt: "Tubi Pitot",
     nentitulli: "Nga diferenca ndërmjet presionit total dhe atij statik llogaritet shpejtësia e rrjedhës.",
     kontrollet: [
@@ -1800,8 +1945,8 @@ function boksiVleres(p, x, y, tekst, ngjyra) {
       let yy = by + 36;
       const r = (t, c, m) => { shkruaj(p, t, bx + 16, yy, { madhesia: m || 20, ngjyra: c || NGJ.boja }); yy += 38; };
       r("pₜ − pₛ = ½ρv² = " + fmt(pd, pd < 1000 ? 1 : 0) + " Pa", NGJ.p);
-      r("Δh = (pₜ − pₛ) / ((ρₘ − ρ) g) = " + (isFinite(dh) ? fmt(dh * 1000, 1) + " mm" : "–"), NGJ.kuqe);
-      r("v = √(2(ρₘ − ρ) g Δh / ρ) = " + fmt(v, 1) + " m/s", NGJ.v);
+      r("Δh = {pₜ − pₛ|(ρₘ − ρ)g} = " + (isFinite(dh) ? fmt(dh * 1000, 1) + " mm" : "–"), NGJ.kuqe);
+      r("v = √{2(ρₘ − ρ)gΔh|ρ} = " + fmt(v, 1) + " m/s", NGJ.v);
       r("(" + fmt(v * 3.6, 1) + " km/h)", NGJ.boja2, 17);
       if (!ok) r("Lëngu manometrik duhet të jetë më i rëndë se fluidi!", NGJ.kuqe, 17);
       K.lexo(`
@@ -1845,7 +1990,7 @@ const STILI = "/* Prezantimi \"Ekuacioni i energjisë\" – tema e Universitetit
       perditesoEtiketen(id);
     },
     klikuar(id) { if (this.klikime.has(id)) { this.klikime.delete(id); return true; } return false; },
-    lexo(html) { const l = el("lexime"); if (l && html !== leximiFundit) { l.innerHTML = html; leximiFundit = html; } }
+    lexo(html) { const l = el("lexime"); if (l && html !== leximiFundit) { l.innerHTML = thyesatHTML(html); leximiFundit = html; } }
   };
   const etiketat = {};
   function perditesoEtiketen(id) {
@@ -1941,7 +2086,7 @@ const STILI = "/* Prezantimi \"Ekuacioni i energjisë\" – tema e Universitetit
       d.className = "kontroll";
       if (k.lloji === "rreshqites") {
         K.vlerat[k.id] = k.vlera;
-        d.innerHTML = `<label>${k.etiketa}: <b></b></label>`;
+        d.innerHTML = `<label>${thyesatHTML(k.etiketa)}: <b></b></label>`;
         const inp = document.createElement("input");
         inp.type = "range"; inp.min = k.min; inp.max = k.max; inp.step = k.hapi; inp.value = k.vlera; inp.dataset.id = k.id;
         inp.addEventListener("input", () => { K.vlerat[k.id] = parseFloat(inp.value); perditesoEtiketen(k.id); });
@@ -2077,7 +2222,7 @@ const STILI = "/* Prezantimi \"Ekuacioni i energjisë\" – tema e Universitetit
     leximiFundit = "";
     const sl = el("sllajdi");
     sl.className = "sllajd" + (["titulli", "ndares", "fundi"].includes(s.lloji) ? " erret" : "");
-    sl.innerHTML = htmlSllajdi(s);
+    sl.innerHTML = thyesatHTML(htmlSllajdi(s));
     void sl.offsetWidth; sl.classList.add("hyr");
     if (s.lloji === "html") s.m.html(el("permbajtjaHtml"), K);
     if (s.lloji === "modul") { ndertoKontrollet(s.m); nisSkicen(s.m); }
